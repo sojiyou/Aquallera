@@ -2,14 +2,19 @@ package com.example.aquallera
 
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+
 class ProfileActivity : AppCompatActivity() {
 
     private lateinit var tvUserName: TextView
@@ -63,10 +68,86 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
     private fun loadUserData() {
-        //hardcoded sample data
+        val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val userEmail = sharedPref.getString("user_email", "")
+
+        if (!userEmail.isNullOrEmpty()) {
+            // Show loading state
+            tvUserEmail.text = "Loading"
+            tvUserName.text = "Loading"
+            tvNumber.text = "Loading"
+
+            fetchUserDataFromDatabase(userEmail)
+        } else {
+            // No user logged in, show default data
+            showDefaultData()
+        }
+    }
+
+    private fun fetchUserDataFromDatabase(userEmail: String) {
+        val database = FirebaseDatabase.getInstance().reference
+        val userRaf = database.child("users")
+
+        userRaf.orderByChild("email").equalTo(userEmail)
+            .addListenerForSingleValueEvent(object: ValueEventListener{
+
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if(dataSnapshot.exists()){
+                        for (userSnapshot in dataSnapshot.children) {
+                            val user = userSnapshot.getValue(User::class.java)
+                            if (user != null) {
+                                // if not empty, update ui with real user data
+                                updateUIWithUserData(user)
+
+                                updateSharedPreference(user)
+                                return
+                            }
+                        }
+                    }
+                    // if not found, show default data
+                    showDefaultData()
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e("Firebase", "Error fetching user data", databaseError.toException())
+                    loadFromSharedPreferences()
+                }
+            })
+
+    }
+
+    private fun updateUIWithUserData(user: User) {
+        tvUserName.text = user.fullName
+        tvUserEmail.text = user.email
+        tvNumber.text = user.number
+
+    }
+
+    private fun updateSharedPreference(user: User) {
+        val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("user_name", user.fullName)
+            putString("user_email", user.email)
+            putString("user_number", user.number)
+            apply()
+        }
+    }
+
+    private fun loadFromSharedPreferences() {
+        val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val userName = sharedPref.getString("user_name", "Juan A. Tamad")
+        val userEmail = sharedPref.getString("user_email", "juantamad@gmail.com")
+        val userNumber = sharedPref.getString("user_number", "09277263218")
+
+        tvUserName.text = userName
+        tvUserEmail.text = userEmail
+        tvNumber.text = userNumber
+    }
+
+    private fun showDefaultData() {
         tvUserName.text = "Juan A. Tamad"
         tvUserEmail.text = "juantamad@gmail.com"
-        tvNumber.text ="09277263218"
+        tvNumber.text = "09277263218"
     }
 
     private fun showLogoutConfirmation () {
@@ -74,7 +155,7 @@ class ProfileActivity : AppCompatActivity() {
             .setTitle("Lout Out")
             .setMessage("Are you sure you want to log out?")
             .setPositiveButton("Yes") { dialog, _ ->
-                Perfomlogout()
+                performLogout()
                 dialog.dismiss()
             }
             .setNegativeButton("No") { dialog, _ ->
@@ -83,7 +164,7 @@ class ProfileActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun Perfomlogout() {
+    private fun performLogout() {
         //clear user data
         val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
         sharedPref.edit().clear().apply()
