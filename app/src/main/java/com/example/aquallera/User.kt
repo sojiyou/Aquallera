@@ -1,11 +1,12 @@
 package com.example.aquallera
 
 data class User(
-    val fullName: String="",
-    val email: String="",
-    val number: String="",
-    val password: String="",
-    val confirmPassword: String=""
+    val uid: String = "",
+    val fullName: String = "",
+    val email: String = "",
+    val number: String = "",
+    val createdAt: Long = System.currentTimeMillis()
 ) {
-    constructor() : this("","", "","","")
+    // No password field - handled by Firebase Auth
+    constructor() : this("", "", "", "", 0L)
 }

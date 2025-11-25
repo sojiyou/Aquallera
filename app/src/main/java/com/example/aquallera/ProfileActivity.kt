@@ -3,7 +3,6 @@ package com.example.aquallera
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -12,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class ProfileActivity : AppCompatActivity() {
@@ -37,7 +35,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        tvUserName =findViewById(R.id.tvUserName)
+        tvUserName = findViewById(R.id.tvUserName)
         tvUserEmail = findViewById(R.id.tvUserEmail)
         tvNumber = findViewById(R.id.tvUserNumber)
         btnEditProfile = findViewById(R.id.btnEditProfile)
@@ -67,15 +65,16 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
     private fun loadUserData() {
         val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
         val userEmail = sharedPref.getString("user_email", "")
 
         if (!userEmail.isNullOrEmpty()) {
             // Show loading state
-            tvUserEmail.text = "Loading"
-            tvUserName.text = "Loading"
-            tvNumber.text = "Loading"
+            tvUserEmail.text = "Loading..."
+            tvUserName.text = "Loading..."
+            tvNumber.text = "Loading..."
 
             fetchUserDataFromDatabase(userEmail)
         } else {
@@ -85,42 +84,39 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun fetchUserDataFromDatabase(userEmail: String) {
-        val database = FirebaseDatabase.getInstance().reference
-        val userRaf = database.child("users")
+        // ✅ FIXED: Use FirebaseConfig instead of direct FirebaseDatabase
+        val database = FirebaseConfig.getDatabaseReference()
+        val usersRef = database.child("users")
 
-        userRaf.orderByChild("email").equalTo(userEmail)
-            .addListenerForSingleValueEvent(object: ValueEventListener{
-
+        usersRef.orderByChild("email").equalTo(userEmail)
+            .addListenerForSingleValueEvent(object: ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if(dataSnapshot.exists()){
+                    if(dataSnapshot.exists()) {
                         for (userSnapshot in dataSnapshot.children) {
                             val user = userSnapshot.getValue(User::class.java)
                             if (user != null) {
-                                // if not empty, update ui with real user data
+                                // Update UI with real user data
                                 updateUIWithUserData(user)
-
                                 updateSharedPreference(user)
                                 return
                             }
                         }
                     }
-                    // if not found, show default data
+                    // If not found, show default data
                     showDefaultData()
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    Log.e("Firebase", "Error fetching user data", databaseError.toException())
+                    // Silent fail - load from SharedPreferences
                     loadFromSharedPreferences()
                 }
             })
-
     }
 
     private fun updateUIWithUserData(user: User) {
         tvUserName.text = user.fullName
         tvUserEmail.text = user.email
         tvNumber.text = user.number
-
     }
 
     private fun updateSharedPreference(user: User) {
@@ -150,9 +146,9 @@ class ProfileActivity : AppCompatActivity() {
         tvNumber.text = "09277263218"
     }
 
-    private fun showLogoutConfirmation () {
+    private fun showLogoutConfirmation() {
         android.app.AlertDialog.Builder(this)
-            .setTitle("Lout Out")
+            .setTitle("Log Out")
             .setMessage("Are you sure you want to log out?")
             .setPositiveButton("Yes") { dialog, _ ->
                 performLogout()
@@ -165,11 +161,11 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun performLogout() {
-        //clear user data
+        // Clear user data
         val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
         sharedPref.edit().clear().apply()
 
-        //Back to activity_main
+        // Back to MainActivity
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
@@ -187,10 +183,13 @@ class ProfileActivity : AppCompatActivity() {
         val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
         val userName = sharedPref.getString("user_name", "Juan A. Tamad")
         val userEmail = sharedPref.getString("user_email", "juanatamad@gmail.com")
+        val userNumber = sharedPref.getString("user_number", "09277263218")
 
         tvUserName.text = userName
         tvUserEmail.text = userEmail
+        tvNumber.text = userNumber
     }
+
     private fun setupBottomNavigation() {
         val navHome = findViewById<LinearLayout>(R.id.navHome)
         val navMap = findViewById<LinearLayout>(R.id.navMap)
@@ -223,6 +222,7 @@ class ProfileActivity : AppCompatActivity() {
             setActiveTab(navProfile)
         }
     }
+
     private fun setActiveTab(activeTab: LinearLayout) {
         val allTabs = listOf(
             findViewById<LinearLayout>(R.id.navHome),
@@ -245,8 +245,7 @@ class ProfileActivity : AppCompatActivity() {
                 tab.background = ContextCompat.getDrawable(this, R.drawable.tab_active_border)
             } else {
                 textView?.setTextColor(Color.parseColor("#757575"))
-                tab.background =
-                    ContextCompat.getDrawable(this, R.drawable.tab_border_highlight)
+                tab.background = ContextCompat.getDrawable(this, R.drawable.tab_border_highlight)
             }
         }
     }

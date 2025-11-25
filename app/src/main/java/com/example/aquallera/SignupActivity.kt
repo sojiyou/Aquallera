@@ -3,30 +3,31 @@ package com.example.aquallera
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 
 class SignupActivity : AppCompatActivity() {
     private lateinit var etFullName: EditText
     private lateinit var etEmail: EditText
-
     private lateinit var etNumber: EditText
     private lateinit var etPassword: EditText
     private lateinit var etConfirmPassword: EditText
     private lateinit var btnSignup: Button
     private lateinit var tvLogin: TextView
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
 
+        auth = FirebaseAuth.getInstance()
         initializeViews()
         setupClickListeners()
     }
@@ -48,90 +49,119 @@ class SignupActivity : AppCompatActivity() {
         val password = etPassword.text.toString().trim()
         val confirmPassword = etConfirmPassword.text.toString().trim()
 
-        //input validation
+        // Input validation
         if (fullName.isEmpty() || email.isEmpty() || number.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
-        }else if (!isValidEmail(email)) {
-                Toast.makeText(this, "Please enter a valid email", Toast.LENGTH_SHORT).show()
+        } else if (!isValidEmail(email)) {
+            Toast.makeText(this, "Please enter a valid email", Toast.LENGTH_SHORT).show()
             return
         } else if (password != confirmPassword) {
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
             return
-        }else if (number.length != 11) {
+        } else if (number.length != 11) {
             Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
+            return
+        } else if (password.length < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // restrict the user from pressing the button while checking the database
         btnSignup.isEnabled = false
         btnSignup.text = "Processing..."
 
-        checkIfUserExists(email, fullName, number, password, confirmPassword)
+        // First check if phone number exists
+        checkIfPhoneNumberExists(email, fullName, number, password)
     }
 
-    private fun checkIfUserExists(email: String, fullName: String, number: String, password: String, confirmPassword: String) {
-        val database = FirebaseDatabase.getInstance().reference
-        val userRef = database.child("users")
+    private fun checkIfPhoneNumberExists(email: String, fullName: String, number: String, password: String) {
+        val database = FirebaseConfig.getDatabaseReference()
+        val usersRef = database.child("users")
 
-        //check if the user already exists
-        userRef.orderByChild("email").equalTo(email)
+        usersRef.orderByChild("number").equalTo(number)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     if (dataSnapshot.exists()) {
-                        signupError("Number already registered, Please use different number")
+                        signupError("Phone number already registered. Please use a different number.")
                     } else {
-                        createUser(email, fullName, number, password, confirmPassword)
+                        // Phone number available, create user with Firebase Auth
+                        createUserWithFirebaseAuth(email, fullName, number, password)
                     }
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    signupError("Database Error: ${databaseError.message}")
-                    Log.e("Firebase", "Database error", databaseError.toException())
+                    signupError("Database error. Please try again.")
                 }
             })
-
     }
 
-    private fun createUser(email: String, fullName: String, number: String, password: String, confirmPassword: String) {
-        val database = FirebaseDatabase.getInstance().reference
-        val user = User(fullName, email, number, password, confirmPassword)
+    private fun createUserWithFirebaseAuth(email: String, fullName: String, number: String, password: String) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val firebaseUser = auth.currentUser
+                    if (firebaseUser != null) {
+                        val profileUpdates = UserProfileChangeRequest.Builder()
+                            .setDisplayName(fullName)
+                            .build()
 
-        val newUserRef = database.child("users").push()
-        newUserRef.setValue(user)
+                        firebaseUser.updateProfile(profileUpdates)
+                            .addOnCompleteListener { profileTask ->
+                                if (profileTask.isSuccessful) {
+                                    // Save user data WITHOUT password to database
+                                    saveUserToDatabase(firebaseUser.uid, fullName, email, number)
+                                } else {
+                                    signupError("Profile setup failed. Please try again.")
+                                }
+                            }
+                    }
+                } else {
+                    signupError("Registration failed: ${task.exception?.message}")
+                }
+            }
+    }
+
+    private fun saveUserToDatabase(uid: String, fullName: String, email: String, number: String) {
+        val database = FirebaseConfig.getDatabaseReference()
+        val user = User(
+            uid = uid,
+            fullName = fullName,
+            email = email,
+            number = number
+            // No password here - it's securely stored in Firebase Auth
+        )
+
+        database.child("users").child(uid).setValue(user)
             .addOnSuccessListener {
-                Log.d("Firebase", "User saved successfully with ID: ${newUserRef.key}")
                 signupSuccess(user)
             }
             .addOnFailureListener { error ->
-                Log.e("Firebase", "Error saving user", error)
-                signupError("Failed to create account. Please try again.")
+                auth.currentUser?.delete()
+                signupError("Failed to create account: ${error.message}")
             }
     }
 
-    private fun signupSuccess(user: User){
+    private fun signupSuccess(user: User) {
         saveUserSession(user)
-
         btnSignup.isEnabled = true
         btnSignup.text = "Sign Up"
-
-        Toast.makeText(this, "Account created Successfully", Toast.LENGTH_SHORT).show()
-
+        Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
 
         val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-    private fun signupError (errorMessage: String){
+    private fun signupError(errorMessage: String) {
         btnSignup.isEnabled = true
         btnSignup.text = "Sign Up"
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
     }
 
     private fun saveUserSession(user: User) {
         val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
         with(sharedPref.edit()) {
+            putString("user_uid", user.uid)
             putString("user_name", user.fullName)
             putString("user_email", user.email)
             putString("user_number", user.number)
@@ -140,19 +170,15 @@ class SignupActivity : AppCompatActivity() {
         }
     }
 
-
     private fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     private fun setupClickListeners() {
-
-        // sign up button click
         btnSignup.setOnClickListener {
             registerUser()
         }
 
-        //login text button click
         tvLogin.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
