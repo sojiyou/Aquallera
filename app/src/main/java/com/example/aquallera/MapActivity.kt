@@ -6,13 +6,14 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
 class MapActivity : AppCompatActivity() {
 
-    private lateinit var btnFindStations: Button
-    private lateinit var btnCurrentLocation: Button
+    private lateinit var waterStation: TextView
+    private lateinit var viewDetails: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,17 +25,18 @@ class MapActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
+        waterStation = findViewById(R.id.waterStationName)
+        viewDetails = findViewById(R.id.viewDetailsBtn)
     }
 
     private fun setupClickListeners() {
-        btnFindStations.setOnClickListener {
-            // TODO: Implement find nearby stations functionality
-            // This will be used when Maps API is integrated
+        waterStation.setOnClickListener {
+            // Handle click on water station name
         }
 
-        btnCurrentLocation.setOnClickListener {
-            // TODO: Implement current location functionality
-            // This will be used when Maps API is integrated
+        viewDetails.setOnClickListener {
+            // Handle click on view details button
+            Toast.makeText(this, "View Details button clicked", Toast.LENGTH_SHORT).show()
         }
     }
 

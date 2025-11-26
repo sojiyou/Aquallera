@@ -34,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
     private fun initializeViews() {
         etEmail = findViewById(R.id.LoginEmailInput)
         etPassword = findViewById(R.id.LoginPasswordInput)
-        btnLogin = findViewById(R.id.LoginBtn)
+        btnLogin = findViewById(R.id.LoginButton)
         tvSignup = findViewById(R.id.GoToSignupBtn)
     }
 
