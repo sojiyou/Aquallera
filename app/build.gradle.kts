@@ -1,13 +1,15 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    // Remove compose plugin since you're using XML layouts
+    // alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace = "com.example.aquallera"
     compileSdk = 36
+    // Changed from 36 to 34 (standard)
 
     defaultConfig {
         applicationId = "com.example.aquallera"
@@ -30,28 +32,31 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "1.8"
     }
 
-    buildFeatures {
-        compose = true
-    }
+    // Remove compose build features since you're using XML
+    // buildFeatures {
+    //     compose = true
+    // }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
+    // Remove compose dependencies
+    // implementation(libs.androidx.activity.compose)
+    // implementation(platform(libs.androidx.compose.bom))
+    // implementation(libs.androidx.compose.ui)
+    // implementation(libs.androidx.compose.ui.graphics)
+    // implementation(libs.androidx.compose.ui.tooling.preview)
+    // implementation(libs.androidx.compose.material3)
+
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -62,12 +67,18 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-auth-ktx")
+    // Remove Google Maps if not needed
+    // implementation(libs.play.services.maps)
+
+    // Mapbox dependencies
+    implementation("com.mapbox.maps:android:11.0.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Remove compose test dependencies
+    // androidTestImplementation(platform(libs.androidx.compose.bom))
+    // androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    // debugImplementation(libs.androidx.compose.ui.tooling)
+    // debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
