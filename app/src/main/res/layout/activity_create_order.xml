@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/loginLogo"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/aqua_llera_logo"/>
+
+        <TextView
+            android:id="@+id/tvWaterStationName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Water Station Name Here"
+            android:textSize="20sp"
+            android:textColor="@color/somewhat_blue"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose Order Type:"
+                android:textSize="16sp"
+                android:textColor="@color/somewhat_blue"/>
+
+            <RadioGroup
+                android:id="@+id/rgOrderType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbDelivery"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Delivery"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:padding="10dp"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rbPickup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pickup"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:padding="10dp" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Order Details:"
+                android:textSize="30sp"
+                android:textColor="@color/somewhat_blue"
+                android:layout_marginBottom="5dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/somewhat_blue"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:text="Selected Date:"
+                android:textColor="@color/somewhat_blue"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvSelectedDate"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="No date selected"
+                android:textSize="16sp"
+                android:textColor="@color/somewhat_blue"
+                android:padding="12dp"
+                android:background="@drawable/gray_input_field_bg"
+                android:layout_marginBottom="15dp"/>
+
+            <CalendarView
+                android:id="@+id/calendarView"
+                android:layout_width="match_parent"
+                android:layout_height="350dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/gray_input_field_bg"
+                android:visibility="gone"/>
+
+            <!-- Add this after your date selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Time:"
+                android:textSize="16sp"
+                android:textColor="@color/somewhat_blue"
+                android:layout_marginBottom="5dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:layout_marginBottom="15dp"
+                android:paddingRight="5dp"
+                android:gravity="center"
+                android:background="@drawable/gray_input_field_bg">
+
+                <TextView
+                    android:id="@+id/tvSelectedTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="No time selected"
+                    android:textSize="16sp"
+                    android:textColor="@color/somewhat_blue"
+                    android:padding="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="showTimePicker"/>
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_access_time_24dp"
+                    android:background="@drawable/button_background2"
+                    android:onClick="showTimePicker"
+                    android:layout_marginStart="10dp"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Water / per litre:"
+                android:textSize="16sp"
+                android:textColor="@color/somewhat_blue"
+                android:layout_marginBottom="5dp"/>
+
+            <EditText
+                android:id="@+id/FullNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/gray_input_field_bg"
+                android:hint="e.g 10L"
+                android:inputType="text"
+                android:padding="12dp"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Location Details:"
+                android:textSize="30sp"
+                android:textColor="@color/somewhat_blue"
+                android:layout_marginBottom="5dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/somewhat_blue"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="street:"
+                android:textSize="16sp"
+                android:textColor="@color/somewhat_blue"
+                android:layout_marginBottom="5dp"/>
+
+            <EditText
+                android:id="@+id/streetInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/gray_input_field_bg"
+                android:hint="e.g Purok 3, lower brookside"
+                android:inputType="text"
+                android:padding="12dp"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="additional details:"
+                android:textSize="16sp"
+                android:textColor="@color/somewhat_blue"
+                android:layout_marginBottom="5dp"/>
+
+            <EditText
+                android:id="@+id/additionalDetailsInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/gray_input_field_bg"
+                android:hint="e.g enter the street next to the waiting shed and into the 3rd left turn"
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textSize="16sp"
+                android:gravity="start"/>
+
+            <Button
+                android:id="@+id/proceedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:background="@drawable/button_background"
+                android:text="proceed"
+                android:textColor="@color/another_yellow" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Navigation -->
+    <include
+        layout="@layout/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
